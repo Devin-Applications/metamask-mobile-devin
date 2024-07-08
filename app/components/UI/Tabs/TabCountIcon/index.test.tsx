@@ -1,7 +1,7 @@
 import React from 'react';
 import TabCountIcon from './';
 import configureMockStore from 'redux-mock-store';
-import { render, screen } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
