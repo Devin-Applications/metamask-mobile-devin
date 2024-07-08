@@ -1,5 +1,6 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react-native';
+import userEvent from '@testing-library/user-event';
 import NetworkInfo from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
@@ -19,17 +20,34 @@ const store = mockStore(initialState);
 
 describe('NetworkInfo', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
-        <NetworkInfo
-          type={''}
-          onClose={function (): void {
-            throw new Error('Function not implemented.');
-          }}
-          ticker={''}
-        />
+        <NetworkInfo type={''} onClose={jest.fn()} ticker={''} />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should display the correct heading', () => {
+    render(
+      <Provider store={store}>
+        <NetworkInfo type={''} onClose={jest.fn()} ticker={''} />
+      </Provider>,
+    );
+    expect(screen.getByRole('heading')).toHaveTextContent(
+      'Network Information',
+    );
+  });
+
+  it('should call onClose when close button is clicked', async () => {
+    const onCloseMock = jest.fn();
+    render(
+      <Provider store={store}>
+        <NetworkInfo type={''} onClose={onCloseMock} ticker={''} />
+      </Provider>,
+    );
+    const closeButton = screen.getByText('Close');
+    await userEvent.click(closeButton);
+    expect(onCloseMock).toHaveBeenCalled();
   });
 });
