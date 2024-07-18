@@ -1,6 +1,7 @@
 import { NativeModules } from 'react-native';
 import mockRNAsyncStorage from '@react-native-async-storage/async-storage/jest/async-storage-mock';
 import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock.js';
+import '@testing-library/jest-dom/extend-expect';
 /* eslint-disable import/no-namespace */
 import { mockTheme } from '../theme';
 import Adapter from 'enzyme-adapter-react-16';
