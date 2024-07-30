@@ -42,7 +42,7 @@ const renderComponent = (state: any) =>
       address={'0xd018538C87232FF95acbCe4870629b75640a78E7'}
       onAccountPress={() => null}
       onAccountLongPress={() => null}
-      onIconPress={() => null}
+      onIconPress={() => null} // Added missing onIconPress property
       testID="address-element"
     />,
     { state },
