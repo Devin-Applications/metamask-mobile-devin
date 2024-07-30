@@ -192,7 +192,7 @@ const UpdateEIP1559Tx = ({
           onlyDisplayHigh.current = true;
           //Disable polling
           stopUpdateGas.current = true;
-          setGasSelected('');
+          setGasSelected("medium");
         } else {
           updateTx1559Options.current = {
             maxPriortyFeeThreshold:
@@ -220,7 +220,7 @@ const UpdateEIP1559Tx = ({
     isMaxPriorityFeePerGasMoreThanLegacy,
   ]);
 
-  const update1559TempGasValue = (selected: string) => {
+  const update1559TempGasValue = (selected: SetStateAction<"medium">) => {
     stopUpdateGas.current = !selected;
     setGasSelected(selected);
   };
@@ -257,7 +257,7 @@ const UpdateEIP1559Tx = ({
           ? [AppConstants.GAS_OPTIONS.LOW, AppConstants.GAS_OPTIONS.MEDIUM]
           : [AppConstants.GAS_OPTIONS.LOW]
       }
-      updateOption={updateTx1559Options.current}
+      updateOption={updateTx1559Options.current as RenderInputProps}
       analyticsParams={getGasAnalyticsParams()}
       animateOnChange={animateOnGasChange}
       selectedGasObject={selectedGasObject}
@@ -278,4 +278,4 @@ const mapStateToProps = (state: any) => ({
   chainId: selectChainId(state),
 });
 
-export default connect(mapStateToProps)(UpdateEIP1559Tx);
+export default connect(mapStateToProps)(UpdateEIP1559Tx as React.ComponentType<UpdateEIP1559Props>);
