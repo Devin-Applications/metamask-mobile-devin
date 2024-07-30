@@ -8,9 +8,9 @@ import {
 import Text from '../../../../Base/Text';
 import StyledButton from '../../../../UI/StyledButton';
 import RangeInput from '../../../../Base/RangeInput';
-import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+// @ts-expect-error Deprecated component
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
-import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../../../locales/i18n';
 import Alert, { AlertType } from '../../../../Base/Alert';
 import HorizontalSelector from '../../../../Base/HorizontalSelector';
@@ -28,7 +28,6 @@ import AppConstants from '../../../../../core/AppConstants';
 import { useGasTransaction } from '../../../../../core/GasPolling/GasPolling';
 import { useAppThemeFromContext, mockTheme } from '../../../../../util/theme';
 import createStyles from './styles';
-import { EditGasFee1559UpdateProps, RenderInputProps } from './types';
 import { EditGasViewSelectorsIDs } from '../../../../../../e2e/selectors/EditGasView.selectors.js';
 import {
   GAS_LIMIT_INCREMENT,
@@ -37,6 +36,36 @@ import {
   GAS_PRICE_MIN as GAS_MIN,
 } from '../../../../../util/gasUtils';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
+
+interface EditGasFee1559UpdateProps {
+  renderableGasFeeMinNative?: string;
+  selectedGasValue?: string;
+  gasOptions?: any;
+  primaryCurrency?: string;
+  chainId?: number;
+  onCancel?: () => void;
+  onChange?: (option: any) => void;
+  onSave?: (gasTransaction: any, newGasPriceObject: any) => void;
+  error?: string;
+  dappSuggestedGas?: boolean;
+  ignoreOptions?: string[];
+  updateOption?: any;
+  extendOptions?: any;
+  recommended?: any;
+  warningMinimumEstimateOption?: string;
+  suggestedEstimateOption?: string;
+  animateOnChange?: boolean;
+  isAnimating?: boolean;
+  analyticsParams?: any;
+  warning?: string;
+  selectedGasObject?: any;
+  onlyGas?: boolean;
+}
+
+interface RenderInputProps {
+  showAdvanced?: boolean;
+  maxFeeThreshold?: boolean;
+}
 
 const EditGasFee1559Update = ({
   selectedGasValue,
@@ -89,12 +118,46 @@ const EditGasFee1559Update = ({
   const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
 
-  const gasTransaction = useGasTransaction({
+  interface GasTransaction {
+    renderableGasFeeMinNative: string;
+    renderableGasFeeMaxNative: string;
+    renderableGasFeeMaxConversion: string;
+    renderableMaxFeePerGasNative: string;
+    renderableGasFeeMinConversion: string;
+    renderableMaxPriorityFeeNative: string;
+    renderableMaxFeePerGasConversion: string;
+    renderableMaxPriorityFeeConversion: string;
+    timeEstimateColor: string;
+    timeEstimate: string;
+    timeEstimateId: string;
+    suggestedMaxFeePerGas: string;
+    suggestedMaxPriorityFeePerGas: string;
+    suggestedGasLimit: string;
+  }
+
+  const defaultGasTransaction: GasTransaction = {
+    renderableGasFeeMinNative: '',
+    renderableGasFeeMaxNative: '',
+    renderableGasFeeMaxConversion: '',
+    renderableMaxFeePerGasNative: '',
+    renderableGasFeeMinConversion: '',
+    renderableMaxPriorityFeeNative: '',
+    renderableMaxFeePerGasConversion: '',
+    renderableMaxPriorityFeeConversion: '',
+    timeEstimateColor: '',
+    timeEstimate: '',
+    timeEstimateId: '',
+    suggestedMaxFeePerGas: '',
+    suggestedMaxPriorityFeePerGas: '',
+    suggestedGasLimit: '',
+  };
+
+  const gasTransaction = (useGasTransaction({
     onlyGas,
     gasSelected: selectedOption,
     legacy: false,
     gasObject,
-  });
+  }) as GasTransaction) || defaultGasTransaction;
 
   const {
     renderableGasFeeMinNative,
@@ -157,7 +220,9 @@ const EditGasFee1559Update = ({
       suggestedGasLimit: gasObject?.suggestedGasLimit,
     };
 
-    onSave(gasTransaction, newGasPriceObject);
+    if (gasTransaction && onSave) {
+      onSave(gasTransaction, newGasPriceObject);
+    }
   }, [getAnalyticsParams, onSave, gasTransaction, gasObject, trackEvent]);
 
   const changeGas = useCallback(
@@ -167,9 +232,11 @@ const EditGasFee1559Update = ({
         ...gasObject,
         suggestedMaxFeePerGas: gas.suggestedMaxFeePerGas,
         suggestedMaxPriorityFeePerGas: gas.suggestedMaxPriorityFeePerGas,
-        suggestedGasLimit: gas.suggestedGasLimit || gasObject.suggestedGasLimit,
+        suggestedGasLimit: gas.suggestedGasLimit || gasObject?.suggestedGasLimit,
       });
-      onChange(option);
+      if (onChange) {
+        onChange(option);
+      }
     },
     [onChange, gasObject],
   );
@@ -185,9 +252,7 @@ const EditGasFee1559Update = ({
   const changedMaxPriorityFee = useCallback(
     (value) => {
       const lowerValue = new BigNumber(
-        gasOptions?.[
-          warningMinimumEstimateOption
-        ]?.suggestedMaxPriorityFeePerGas,
+        gasOptions?.[warningMinimumEstimateOption ?? '']?.suggestedMaxPriorityFeePerGas,
       );
 
       const higherValue = new BigNumber(
@@ -216,7 +281,7 @@ const EditGasFee1559Update = ({
           strings('edit_gas_fee_eip1559.max_priority_fee_high'),
         );
       } else {
-        setMaxPriorityFeeError(null);
+        setMaxPriorityFeeError('');
       }
 
       const newGas = {
@@ -238,7 +303,7 @@ const EditGasFee1559Update = ({
   const changedMaxFeePerGas = useCallback(
     (value) => {
       const lowerValue = new BigNumber(
-        gasOptions?.[warningMinimumEstimateOption]?.suggestedMaxFeePerGas,
+        gasOptions?.[warningMinimumEstimateOption ?? '']?.suggestedMaxFeePerGas,
       );
       const higherValue = new BigNumber(
         gasOptions?.high?.suggestedMaxFeePerGas,
@@ -359,7 +424,8 @@ const EditGasFee1559Update = ({
         hitSlop={styles.hitSlop}
         onPress={() => toggleInfoModal(infoValue)}
       >
-        <MaterialCommunityIcon
+        {/* @ts-expect-error Deprecated component */}
+        <MaterialCommunityIcons
           name="information"
           size={14}
           style={styles.labelInfo}
@@ -373,7 +439,7 @@ const EditGasFee1559Update = ({
       <Text bold reset>
         {strings(value)}:
       </Text>{' '}
-      {gasOptions?.[suggestedEstimateOption]?.suggestedMaxFeePerGas} GWEI
+      {suggestedEstimateOption && gasOptions?.[suggestedEstimateOption]?.suggestedMaxFeePerGas} GWEI
     </Text>
   );
 
@@ -405,11 +471,13 @@ const EditGasFee1559Update = ({
             selected={selectedOption}
             onPress={selectOption}
             options={renderOptions}
+            circleSize={30}
+            disabled={false}
           />
         </View>
         <View style={styles.advancedOptionsContainer}>
           <TouchableOpacity
-            disabled={option?.showAdvanced}
+            disabled={option.showAdvanced}
             onPress={toggleAdvancedOptions}
             style={styles.advancedOptionsButton}
           >
@@ -417,10 +485,12 @@ const EditGasFee1559Update = ({
               {strings('edit_gas_fee_eip1559.advanced_options')}
             </Text>
             <Text noMargin link bold style={styles.advancedOptionsIcon}>
-              <Icon name={`ios-arrow-${showAdvancedOptions ? 'up' : 'down'}`} />
+              <View>
+                {showAdvancedOptions ? 'chevron-up' : 'chevron-down'}
+              </View>
             </Text>
           </TouchableOpacity>
-          {(showAdvancedOptions || option?.maxFeeThreshold) && (
+          {(showAdvancedOptions || option.maxFeeThreshold) && (
             <View style={styles.advancedOptionsInputsContainer}>
               <View style={styles.rangeInputContainer}>
                 <RangeInput
@@ -528,11 +598,9 @@ const EditGasFee1559Update = ({
           small
           type={AlertType.Warning}
           renderIcon={() => (
-            <MaterialCommunityIcon
-              name="information"
-              size={20}
-              color={colors.warning.default}
-            />
+            <View>
+              <Text style={{ color: colors.warning.default }}>information</Text>
+            </View>
           )}
           style={styles.warningContainer}
         >
@@ -557,11 +625,9 @@ const EditGasFee1559Update = ({
           small
           type={AlertType.Error}
           renderIcon={() => (
-            <MaterialCommunityIcon
-              name="information"
-              size={20}
-              color={colors.error.default}
-            />
+            <View>
+              <Text style={{ color: colors.error.default }}>information</Text>
+            </View>
           )}
           style={styles.warningContainer}
         >
@@ -574,7 +640,6 @@ const EditGasFee1559Update = ({
           )}
         </Alert>
       );
-
     return error;
   }, [error, styles, colors]);
 
@@ -597,20 +662,16 @@ const EditGasFee1559Update = ({
             <View>
               <View style={styles.customGasHeader}>
                 <TouchableOpacity onPress={onCancel}>
-                  <Icon
-                    name={'ios-arrow-back'}
-                    size={24}
-                    color={colors.text.default}
-                  />
+                  <View>
+                    <Text>{'arrow-left'}</Text>
+                  </View>
                 </TouchableOpacity>
                 <Text bold black>
                   {renderDisplayTitle}
                 </Text>
-                <Icon
-                  name={'ios-arrow-back'}
-                  size={24}
-                  color={colors.background.default}
-                />
+                <View>
+                  <Text>{'arrow-left'}</Text>
+                </View>
               </View>
               {updateOption && (
                 <View style={styles.newGasFeeHeader}>
@@ -622,7 +683,8 @@ const EditGasFee1559Update = ({
                     hitSlop={styles.hitSlop}
                     onPress={() => toggleInfoModal('new_gas_fee')}
                   >
-                    <MaterialCommunityIcon
+                    {/* @ts-expect-error Deprecated component */}
+                    <MaterialCommunityIcons
                       name="information"
                       size={14}
                       style={styles.labelInfo}
@@ -686,7 +748,8 @@ const EditGasFee1559Update = ({
                     hitSlop={styles.hitSlop}
                     onPress={() => showTimeEstimateInfoModal()}
                   >
-                    <MaterialCommunityIcon
+                    {/* @ts-expect-error Deprecated component */}
+                    <MaterialCommunityIcons
                       name="information"
                       size={14}
                       style={styles.redInfo}
