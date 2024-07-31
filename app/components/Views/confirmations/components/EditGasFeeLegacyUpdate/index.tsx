@@ -11,7 +11,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useSelector } from 'react-redux';
 
-import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+import { GAS_ESTIMATE_TYPES, EthGasPriceEstimate, GasFeeEstimates, LegacyGasPriceEstimate } from '@metamask/gas-fee-controller';
 
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -75,7 +75,7 @@ const EditGasFeeLegacy = ({
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const gasFeeEstimate = useSelector(selectGasFeeEstimates);
+  const gasFeeEstimate = useSelector(selectGasFeeEstimates) as Record<string, never> | EthGasPriceEstimate | GasFeeEstimates | LegacyGasPriceEstimate;
 
   const primaryCurrency = useSelector(
     // TODO: Replace "any" with type
@@ -136,13 +136,21 @@ const EditGasFeeLegacy = ({
 
       const lowerValue = new BigNumber(
         gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-          ? gasFeeEstimate?.low
-          : gasFeeEstimate?.gasPrice,
+          ? 'low' in gasFeeEstimate && typeof gasFeeEstimate.low === 'string'
+            ? gasFeeEstimate.low
+            : '0'
+          : 'gasPrice' in gasFeeEstimate && typeof gasFeeEstimate.gasPrice === 'string'
+            ? gasFeeEstimate.gasPrice
+            : '0'
       );
       const higherValue = new BigNumber(
         gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-          ? gasFeeEstimate?.high
-          : gasFeeEstimate?.gasPrice,
+          ? 'high' in gasFeeEstimate && typeof gasFeeEstimate.high === 'string'
+            ? gasFeeEstimate.high
+            : '0'
+          : 'gasPrice' in gasFeeEstimate && typeof gasFeeEstimate.gasPrice === 'string'
+            ? gasFeeEstimate.gasPrice
+            : '0'
       ).multipliedBy(new BigNumber(1.5));
 
       const valueBN = new BigNumber(value);
@@ -186,6 +194,7 @@ const EditGasFeeLegacy = ({
           small
           type={AlertType.Warning}
           renderIcon={() => (
+            // @ts-expect-error Deprecated component
             <MaterialCommunityIcon
               name="information"
               size={20}
@@ -214,6 +223,7 @@ const EditGasFeeLegacy = ({
           small
           type={AlertType.Error}
           renderIcon={() => (
+            // @ts-expect-error Deprecated component
             <MaterialCommunityIcon
               name="information"
               size={20}
@@ -268,8 +278,9 @@ const EditGasFeeLegacy = ({
             <View>
               <View style={styles.customGasHeader}>
                 <TouchableOpacity onPress={onCancel}>
+                  {/* @ts-expect-error Icon component needs proper typing */}
                   <Icon
-                    name={'ios-arrow-back'}
+                    name="ios-arrow-back"
                     size={24}
                     color={colors.text.default}
                   />
@@ -277,10 +288,12 @@ const EditGasFeeLegacy = ({
                 <Text variant={TextVariant.HeadingSM}>
                   {strings('transaction.edit_priority')}
                 </Text>
+                {/* @ts-expect-error Icon component needs proper typing */}
                 <Icon
-                  name={'ios-arrow-back'}
+                  name="ios-arrow-back"
                   size={24}
                   color={colors.background.default}
+                  style={{ opacity: 0 }} // Make the icon invisible but keep layout
                 />
               </View>
             </View>
@@ -340,6 +353,7 @@ const EditGasFeeLegacy = ({
                             hitSlop={styles.hitSlop}
                             onPress={() => handleInfoModalPress('gas_limit')}
                           >
+                            {/* @ts-expect-error Deprecated component */}
                             <MaterialCommunityIcon
                               name="information"
                               size={14}
@@ -368,6 +382,7 @@ const EditGasFeeLegacy = ({
                             hitSlop={styles.hitSlop}
                             onPress={() => handleInfoModalPress('gas_price')}
                           >
+                            {/* @ts-expect-error Deprecated component */}
                             <MaterialCommunityIcon
                               name="information"
                               size={14}
